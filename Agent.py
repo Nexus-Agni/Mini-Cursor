@@ -1,4 +1,6 @@
-from openai import OpenAI
+from langfuse.decorators import observe
+from langfuse.openai import openai
+from langfuse import Langfuse
 from dotenv import load_dotenv
 import json
 import os
@@ -7,11 +9,14 @@ load_dotenv()
 
 gemini_api_key = os.getenv("GOOGLE_API_KEY")
 
-client = OpenAI(
+client = openai.Client(
     api_key=gemini_api_key,
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
 )
 
+langfuse = Langfuse()
+
+@observe
 def run_command(command):
     result = os.system(command)
     return result
@@ -23,6 +28,7 @@ available_tools = {
         "description": "Takes an input and executes that command on the terminal and returns an output"
     }
 }
+
 
 system_prompt = """
 You are helpul coding based AI assistant who is expert in the field of coding and specialised in solving coding problems and resolving coding related user queries. If you are asked about anything else other than coding related queries then you will reply with a message that you are not able to help you with that.
@@ -88,6 +94,7 @@ while True:
             messages.append({"role" : "assistant" , "content" : json.dumps({"step": "observe", "output" : output})})
     
 
-    if parsed_output.get("step") == "output" :
+    if parsed_output.get("step") == "output" : 
         print("🤖 : ", parsed_output)
         break
+
